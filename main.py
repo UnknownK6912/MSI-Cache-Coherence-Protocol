@@ -1,5 +1,6 @@
 import sys
 import pprint
+from pathlib import Path
 
 from infrastructure.simulator import Simulator
 from infrastructure.trace import parseTraceFile
@@ -27,6 +28,31 @@ def runSimulation(tracePath: str, numberOfCores: int, numberOfCacheLines: int, m
     pprint.pp(simulationReport, sort_dicts=False)
 
 
+def pickTraceInteractive() -> str:
+    available = sorted(Path(".").glob("trace_*.txt"))
+
+    if not available:
+        print("No trace files found in the current directory.")
+        print("Run generate_traces.py first to create trace_a.txt / trace_b.txt / trace_c.txt")
+        sys.exit(1)
+
+    print("Available traces:")
+    for i, path in enumerate(available):
+        print(f"  [{i + 1}] {path.name}")
+
+    try:
+        choice = int(input("Select trace number: "))
+        assert 1 <= choice <= len(available), f"Enter a number between 1 and {len(available)}"
+    except ValueError:
+        print("Error: Input must be a valid number")
+        sys.exit(1)
+    except AssertionError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+    return str(available[choice - 1])
+
+
 def main() -> None:
     # If user passes command-line values, use them.
     if len(sys.argv) >= 2:
@@ -37,18 +63,24 @@ def main() -> None:
         runSimulation(tracePath, numberOfCores, numberOfCacheLines, memorySize)
         return
 
-    # Otherwise show usage and run a very explicit default example.
+    # Otherwise show usage and let the user pick a trace interactively.
     printUsage()
     print("")
     print("No command-line arguments were provided.")
-    print("Trying default demo trace: traces/smoke_trace.txt")
     print("")
-    runSimulation(
-        tracePath="traces/smoke_trace.txt",
-        numberOfCores=4,
-        numberOfCacheLines=8,
-        memorySize=64,
-    )
+
+    tracePath = pickTraceInteractive()
+
+    try:
+        numberOfCores = int(input("Number of cores       [default 4]: ").strip() or 4)
+        numberOfCacheLines = int(input("Cache lines per cache [default 8]: ").strip() or 8)
+        memorySize = int(input("Memory size (addrs)  [default 64]: ").strip() or 64)
+    except ValueError:
+        print("Error: configuration values must be valid integers")
+        sys.exit(1)
+
+    print("")
+    runSimulation(tracePath, numberOfCores, numberOfCacheLines, memorySize)
 
 
 if __name__ == "__main__":
