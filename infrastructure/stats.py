@@ -10,6 +10,7 @@ class CoreStats:
     writeHits: int = 0
     writeMisses: int = 0
     invalidationsReceived: int = 0
+    invalidationsCaused: int = 0
     writebacks: int = 0
 
 

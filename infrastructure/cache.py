@@ -34,7 +34,7 @@ class Cache:
         self.bus.broadcast(BusTxn(self.coreId, BusTxnType.BUSRD, address)) # no need to wait for snoop results
         self.memory.readLine(address)
 
-        # MSI rule: read miss installs in S.
+        # MSI read miss installs in S.
         cacheLine.tag = addressTag
         cacheLine.state = LineState.S
 
@@ -69,6 +69,7 @@ class Cache:
         if txn.txnType == BusTxnType.BUSRD:
             if cacheLine.state == LineState.M:
                 self.memory.acceptWriteback(txn.address)
+                self.bus.broadcast(BusTxn(self.coreId, BusTxnType.BUSWB, txn.address))
                 self.stats.core[self.coreId].writebacks += 1
                 cacheLine.state = LineState.S
                 return SnoopResult(sharedHit=True, writebackDone=True)
@@ -79,6 +80,7 @@ class Cache:
             if cacheLine.state in (LineState.S, LineState.M):
                 if cacheLine.state == LineState.M:
                     self.memory.acceptWriteback(txn.address)
+                    self.bus.broadcast(BusTxn(self.coreId, BusTxnType.BUSWB, txn.address))
                     self.stats.core[self.coreId].writebacks += 1
                 cacheLine.state = LineState.I
                 self.stats.core[self.coreId].invalidationsReceived += 1

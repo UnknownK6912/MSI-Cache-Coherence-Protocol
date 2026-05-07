@@ -32,4 +32,8 @@ class Bus:
             result.sharedHit = result.sharedHit or observed.sharedHit
             result.writebackDone = result.writebackDone or observed.writebackDone
             result.invalidations += observed.invalidations
+        
+        if txn.txnType in (BusTxnType.BUSRDX,):
+            self.stats.core[txn.srcCore].invalidationsCaused += result.invalidations
+
         return result

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from msi_sim.types import OpType, TraceEvent
+from infrastructure.types import OpType, TraceEvent
 
 # function to read trace file and convert to list of TraceEvent objects
 
